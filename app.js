@@ -1,14 +1,23 @@
+// apparently this is re-implementing some of React
+var render = function (template, node) {
+  node.innerHTML = template;
+}
+
+
+mybutton = "<button type='button' class='button' onclick='pokeESP32(event);'>Buzz</button>";
+
 function submitPW() {
   event.preventDefault();
   var submittedPassword = document.getElementById("password").value;
   if (submittedPassword == "password") {
-    window.location.href="right.html";
+    render(mybutton, document.querySelector("div#testing"));
   } else {
-    window.location.href="wrong.html";
+    render("Wrong", document.querySelector("div#testing"));
   }
 }
 
 function pokeESP32() {
-  IP = XXXXX;
-  websocket.send("open");
+  alert("Buzzing");
+  // IP = XXXXX;
+  // websocket.send("open");
 }
