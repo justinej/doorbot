@@ -6,21 +6,19 @@
 // Load Wi-Fi library
 #include <WiFi.h>
 #include <ESP32Servo.h>
+#include <SPIFFS.h>
+#include <FS.h>
+
+// FILE SYSTEM NOT MOUNTED RIGHT NOW
+
+/* You only need to format SPIFFS the first time you run a
+   test or else use the SPIFFS plugin to create a partition
+   https://github.com/me−no−dev/arduino−esp32fs−plugin */
+#define FORMAT_SPIFFS_IF_FAILED true
 
 Servo myservo;
-
-// Read Wi-Fi ssid and pw from wifi.txt
-String wifi_ssid;
-String wifi_password;
-char c;
-while ((c = read("wifi.txt")) != '\n') {
-  wifi_ssid += c;
-}
-while ((c = read("wifi.txt")) != -1) {
-  wifi_password += c;
-}
-const char* ssid = wifi_ssid;
-const char* password = wifi_password;
+String ssid = "";
+String password = "";
 
 // Set web server port number to 80
 WiFiServer server(80);
@@ -42,7 +40,8 @@ const long timeoutTime = 2000;
 
 void setup() {
 
-
+  SPIFFS.begin(true);
+  
   ESP32PWM::allocateTimer(0);
   ESP32PWM::allocateTimer(1);
   ESP32PWM::allocateTimer(2);
@@ -54,8 +53,28 @@ void setup() {
   Serial.begin(115200);
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
+  File file = SPIFFS.open("/wifi.txt");
+  char c;
+  while (file.available()) {
+    c = file.read();
+    if (c == '\n') {
+      break;
+    }
+    ssid += c;
+  }
   Serial.println(ssid);
-  WiFi.begin(ssid, password);
+  while (file.available()) {
+    c = file.read();
+    if (c == '\n') {
+      break;
+    }
+    password += c;
+  }
+  Serial.print(password);
+  Serial.print("blah");
+  const char* myssid = ssid.c_str();
+  const char* mypassword = password.c_str();
+  WiFi.begin(myssid, mypassword);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -135,4 +154,3 @@ void loop(){
     Serial.println("");
   }
 }
-           

@@ -12,3 +12,7 @@ A rough sketch of what the system will look like:
 ![Schematic](schematic.jpg)
 
 Some original code from: https://github.com/madhephaestus/ESP32Servo/blob/master/examples/Knob/Knob.ino
+
+## Some helpful commands
+
+Finds PID of processes: `sudo lsof -n | grep "UART"`
