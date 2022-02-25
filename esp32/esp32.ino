@@ -8,6 +8,7 @@
 #include <ESP32Servo.h>
 #include <SPIFFS.h>
 #include <FS.h>
+#include "ESPAsyncWebServer.h"
 
 // FILE SYSTEM NOT MOUNTED RIGHT NOW
 
@@ -21,7 +22,8 @@ String ssid = "";
 String password = "";
 
 // Set web server port number to 80
-WiFiServer server(80);
+AsyncWebServer server(80);
+AsyncWebSocket ws("/test"); // js sends msg to IP/test
 
 // Variable to store the HTTP request
 String header;
@@ -39,9 +41,10 @@ unsigned long previousTime = 0;
 const long timeoutTime = 2000;
 
 void setup() {
-
+  Serial.begin(115200);
   SPIFFS.begin(true);
-  
+
+  // Set up Servo motor
   ESP32PWM::allocateTimer(0);
   ESP32PWM::allocateTimer(1);
   ESP32PWM::allocateTimer(2);
@@ -50,7 +53,7 @@ void setup() {
   myservo.attach(servoPin, 500, 2400);   // attaches the servo on pin 18 to the servo object
   myservo.write(servoOff); // Start with servo Off
 
-  Serial.begin(115200);
+  
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   File file = SPIFFS.open("/wifi.txt");
@@ -70,8 +73,7 @@ void setup() {
     }
     password += c;
   }
-  Serial.print(password);
-  Serial.print("blah");
+  Serial.println(password);
   const char* myssid = ssid.c_str();
   const char* mypassword = password.c_str();
   WiFi.begin(myssid, mypassword);
@@ -79,78 +81,44 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
-  // Print local IP address and start web server
   Serial.println("");
   Serial.println("WiFi connected.");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+
+
+
+  ws.onEvent(onWsEvent);
+  server.addHandler(&ws);
+  server.on("/printIp", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/plain", "ok");
+    Serial.print("Received request from client with IP: ");
+    Serial.println(request->client()->remoteIP());
+  });
   server.begin();
 }
 
-void loop(){
-  WiFiClient client = server.available();   // Listen for incoming clients
 
-  if (client) {                             // If a new client connects,
-    currentTime = millis();
-    previousTime = currentTime;
-    Serial.println("New Client.");          // print a message out in the serial port
-    String currentLine = "";                // make a String to hold incoming data from the client
-    while (client.connected() && currentTime - previousTime <= timeoutTime) {  // loop while the client's connected
-      currentTime = millis();
-      if (client.available()) {             // if there's bytes to read from the client,
-        char c = client.read();             // read a byte, then
-        Serial.write(c);                    // print it out the serial monitor
-        header += c;
-        if (c == '\n') {                    // if the byte is a newline character
-          // if the current line is blank, you got two newline characters in a row.
-          // that's the end of the client HTTP request, so send a response:
-          if (currentLine.length() == 0) {
-            // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
-            // and a content-type so the client knows what's coming, then a blank line:
-            client.println("HTTP/1.1 200 OK");
-            client.println("Content-type:text/html");
-            client.println("Connection: close");
-            client.println();
-
-            // Every time page is accessed, open the door
-            myservo.write(servoOn);
-            delay(1000);
-            myservo.write(servoOff);
-
-            // Display the HTML web page
-            client.println("<!DOCTYPE html><html>");
-            client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
-            client.println("<link rel=\"icon\" href=\"data:,\">");
-            // CSS to style the on/off buttons 
-            // Feel free to change the background-color and font-size attributes to fit your preferences
-            client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
-            client.println("</style>");
-                        
-            // Web Page Heading
-            client.println("<body><h1>Door Bot</h1>");
-
-            client.println("<div contenteditable=true>");
-            client.println("<a id=lnk style=-moz-appearance:textfield href=http://www.google.com>");
-            client.println("http://www.google.com</a></div>");
-            client.println("</body></html>");
-
-            // The HTTP response ends with another blank line
-            client.println();
-            // Break out of the while loop
-            break;
-          } else { // if you got a newline, then clear currentLine
-            currentLine = "";
-          }
-        } else if (c != '\r') {  // if you got anything else but a carriage return character,
-          currentLine += c;      // add it to the end of the currentLine
-        }
+void onWsEvent(
+  AsyncWebSocket* server,
+  AsyncWebSocketClient* client,
+  AwsEventType type,
+  void* arg,
+  uint8_t *data,
+  size_t len) {
+    if (type == WS_EVT_CONNECT) {
+      Serial.print("Websocket client connection received.");
+    } else if (type == WS_EVT_DISCONNECT) {
+      Serial.println("Client disconnected");
+      Serial.println("---------------");
+    } else if (type == WS_EVT_DATA) {
+      Serial.print("Data received: ");
+      for (int i=0; i < len; i++) {
+        Serial.print((char) data[i]);
       }
+
+      Serial.println();
     }
-    // Clear the header variable
-    header = "";
-    // Close the connection
-    client.stop();
-    Serial.println("Client disconnected.");
-    Serial.println("");
   }
-}
+
+void loop(){}
