@@ -17,6 +17,8 @@ Passkeys are stored as salted hashes in the SQLite db. However I would not recom
 
 Go to `URL/admin.html` (if you have an admin passkey) in order to access the admin page and view status on all passkeys ever given out.
 
+![](screenshot.png)
+
 ### How to use
 
 Every time you run the Flask app in a new terminal, run:
@@ -48,3 +50,11 @@ flask run
 
 You'll probably want to run all three of these lines the first time you set up or if you are starting over.
 
+
+### How it works?
+
+Some vague concepts, mostly for my own future's reference.
+
+A flask app is created in `__init__.py`, which calls python files `auth.py`, `db.py`, and `internal.py`. Auth handles logging in and registering (a new passkey). DB gives us access to the SQLite database (which is stored in an `instance` folder outside of `webapp`). Internal renders the page to open the door and the admin page that catalogs all of the existing passkeys. Each of these python files renders an HTML file that is generated from the HTML Jinja templates in the `templates` folder. Jinja basically takes inputs from the python function and uses them to dynamically change the HTML.
+
+CLI commands to access the database have to be run within the Flask app context and are best defined in `__init__.py` alongside the app itself. I think the only use for this right now is creating an admin user.
