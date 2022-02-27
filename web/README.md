@@ -18,14 +18,18 @@ Passkeys are stored as salted hashes in the SQLite db. However I would not recom
 Go to `URL/admin.html` (if you have an admin passkey) in order to access the admin page and view status on all passkeys ever given out.
 
 ### How to use
+
+Every time you run the Flask app in a new terminal, run:
 ```
 source venv/bin/activate
 export FLASK_APP=webapp
 export FLASK_ENV=development
 ```
 
-My venv environment is this:
-TODO
+If you are using this venv for the first time, run:
+```
+pip install -r requirements.txt
+```
 
 To wipe the existing db and start over (or running an instance for the first time), run:
 ```
