@@ -1,6 +1,7 @@
 import os
-
+import click
 from flask import Flask
+from werkzeug.security import generate_password_hash
 
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
@@ -19,18 +20,28 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    @app.route("/hello")
-    def hello():
-        return "Hello, World!"
-
     from . import db
-    db.init_app(app)
-
     from . import auth
-    app.register_blueprint(auth.bp)
+    from . import internal
 
-    from . import blog
-    app.register_blueprint(blog.bp)
-    app.add_url_rule('/', endpoint='index')
+    db.init_app(app)
+    app.register_blueprint(auth.bp)
+    app.register_blueprint(internal.bp)
+    app.add_url_rule('/', endpoint='auth.login')
+
+    @app.cli.command("add-admin")
+    @click.argument("passkey")
+    @click.option("--notes")
+    def add_admin(passkey, notes):
+        database = db.get_db()
+        try:
+            database.execute(
+                "INSERT INTO passkeys (passkey, used, admin, notes) VALUES (?, ?, ?, ?)",
+                (generate_password_hash(passkey), 0, 1, notes),
+            )
+            database.commit()
+        except database.IntegrityError:
+            raise ValueError(f"Passkey {passkey} is already registered.")
+        print(f"Success! Added {passkey} as admin, with notes: {notes}")
 
     return app

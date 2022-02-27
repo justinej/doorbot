@@ -6,8 +6,18 @@
 
 {% block content %}
   <form method="post">
-    <label for="passkey">Register passkey</label>
+    <label for="passkey">Passkey*</label>
     <input type="passkey" name="passkey" id="passkey" required>
+
+    <label for="expiration">Expiration (format: YYYY-MM-DD HH-MM-SS)</label>
+    <input type="datetime" name="expiration" id="expiration">
+
+    <label for="num_uses">Total Uses Allowed</label>
+    <input type="num_uses" name="num_uses" id="num_uses">
+
+    <label for="notes">Notes</label>
+    <input type="notes" name="notes" id="notes">
+
     <input type="submit" value="Register">
   </form>
 {% endblock %}
