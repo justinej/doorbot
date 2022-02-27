@@ -3,13 +3,12 @@
 ## Goal:
 I would like to access a website and press a button to control a servo motor wirelessly. It will be controlled by an Espressif ESP32.
 
-## Setup
+## Layout
 
-There is an esp32 folder with files that will be uploaded onto the board, an a web folder for files that will eventually run on a server in an external VM. There is a `/esp32/wifi.txt` file that contains the wifi information for the board. There will also be a `/web/password.txt` that contains a list of current valid passwords.
+There is an esp32 folder with files that will be uploaded onto the board, an a web folder for files that will eventually run on a server in an external VM. There is a `/esp32/wifi.txt` file that contains the wifi log-in details that must be loaded into the ESP32 SPIFFS file system.
 
-A rough sketch of what the system will look like:
+More details on the webapp are in `web/README.md`. The Flask server will send an HTTP request to the ESP32 when someone presses the "buzz" button.
 
-![Schematic](schematic.jpg)
 
 Some original code from: https://github.com/madhephaestus/ESP32Servo/blob/master/examples/Knob/Knob.ino
 
