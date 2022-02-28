@@ -1,14 +1,8 @@
-/*********
-  Rui Santos
-  Complete project details at https://randomnerdtutorials.com  
-*********/
-
 // Load Wi-Fi library
 #include <WiFi.h>
-#include <ESP32Servo.h>
 #include <SPIFFS.h>
+#include <ESP32Servo.h>
 #include <FS.h>
-#include "ESPAsyncWebServer.h"
 
 // FILE SYSTEM NOT MOUNTED RIGHT NOW
 
@@ -22,8 +16,7 @@ String ssid = "";
 String password = "";
 
 // Set web server port number to 80
-AsyncWebServer server(80);
-AsyncWebSocket ws("/test"); // js sends msg to IP/test
+WiFiServer server(80);
 
 // Variable to store the HTTP request
 String header;
@@ -32,7 +25,7 @@ int servoPin = 5;
 int ADC_Max = 4096;
 int servoOn = 1;
 int servoOff = 100;
- 
+
 // Current time
 unsigned long currentTime = millis();
 // Previous time
@@ -53,7 +46,6 @@ void setup() {
   myservo.attach(servoPin, 500, 2400);   // attaches the servo on pin 18 to the servo object
   myservo.write(servoOff); // Start with servo Off
 
-  
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   File file = SPIFFS.open("/wifi.txt");
@@ -81,44 +73,49 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
+  // Print local IP address and start web server
   Serial.println("");
   Serial.println("WiFi connected.");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-
-
-
-  ws.onEvent(onWsEvent);
-  server.addHandler(&ws);
-  server.on("/printIp", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "ok");
-    Serial.print("Received request from client with IP: ");
-    Serial.println(request->client()->remoteIP());
-  });
   server.begin();
 }
 
+void loop(){
+  WiFiClient client = server.available();   // Listen for incoming clients
 
-void onWsEvent(
-  AsyncWebSocket* server,
-  AsyncWebSocketClient* client,
-  AwsEventType type,
-  void* arg,
-  uint8_t *data,
-  size_t len) {
-    if (type == WS_EVT_CONNECT) {
-      Serial.print("Websocket client connection received.");
-    } else if (type == WS_EVT_DISCONNECT) {
-      Serial.println("Client disconnected");
-      Serial.println("---------------");
-    } else if (type == WS_EVT_DATA) {
-      Serial.print("Data received: ");
-      for (int i=0; i < len; i++) {
-        Serial.print((char) data[i]);
+  if (client) {                             // If a new client connects,
+    currentTime = millis();
+    previousTime = currentTime;
+    Serial.println("New Client.");          // print a message out in the serial port
+    String currentLine = "";                // make a String to hold incoming data from the client
+    while (client.connected() && currentTime - previousTime <= timeoutTime) {  // loop while the client's connected
+      currentTime = millis();
+      if (client.available()) {             // if there's bytes to read from the client,
+        char c = client.read();             // read a byte, then
+        Serial.write(c);                    // print it out the serial monitor
+        if (c == '\n') {
+          if (currentLine.length() == 0) {
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-type:text/html");
+            client.println("Connection: close");
+            client.println();
+
+            client.println("Hello");
+            client.println();
+            break;
+          } else {
+            currentLine = "";
+          }
+        } else if (c != '\r') {
+            currentLine += c;
+        }
       }
-
-      Serial.println();
     }
+    Serial.println(client.remoteIP());
+    // Close the connection
+    client.stop();
+    Serial.println("Client disconnected.");
+    Serial.println("");
   }
-
-void loop(){}
+}

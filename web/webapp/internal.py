@@ -2,10 +2,10 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from webapp.db import get_db
-from webapp.auth import admin_required
+from webapp.auth import admin_required, login_required
 from datetime import timedelta
 from webapp.auth import passkey_gives_error
-
+import requests
 bp = Blueprint('internal', __name__)
 
 @bp.route('/admin')
@@ -21,11 +21,20 @@ def admin():
      )
 
 @bp.route('/')
+@login_required
 def open():
-    return render_template('internal/open.html')
 
+    def trigger_board():
+        print("Triggered v2")
+        return
 
-# var target = "http://192.168.1.145/printIp";
-# client.get(target, function(response) {
-#   // do something with response
-# });
+    return render_template(
+        'internal/open.html',
+        trigger_board=trigger_board
+    )
+
+@bp.route('/buzz')
+@login_required
+def buzz():
+    requests.get(url="http://10.2.2.126/")
+    return redirect(url_for("internal.open"))

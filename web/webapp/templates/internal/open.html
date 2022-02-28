@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <div name="button">Buzz!</div>
+
+<form class="button" action="{{ url_for('internal.buzz') }}"> 
+    <input type="submit" class="button" value="buzz" />
+</form>
+
 {% endblock %}
