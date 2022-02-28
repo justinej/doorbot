@@ -23,18 +23,12 @@ def admin():
 @bp.route('/')
 @login_required
 def open():
-
-    def trigger_board():
-        print("Triggered v2")
-        return
-
-    return render_template(
-        'internal/open.html',
-        trigger_board=trigger_board
-    )
+    return render_template('internal/open.html')
 
 @bp.route('/buzz')
 @login_required
 def buzz():
+    # TODO: replace with more permanent IP
+    # TODO: make that IP secret
     requests.get(url="http://10.2.2.126/")
     return redirect(url_for("internal.open"))
