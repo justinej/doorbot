@@ -6,6 +6,11 @@ from webapp.auth import admin_required, login_required
 from datetime import timedelta
 from webapp.auth import passkey_gives_error
 import requests
+
+
+IP_FNAME = "webapp/ip.txt" # Sensitive: hostname of ESP32 server
+ip = open(IP_FNAME).read()[:-1]
+
 bp = Blueprint('internal', __name__)
 
 @bp.route('/admin')
@@ -28,9 +33,7 @@ def open():
 @bp.route('/buzz')
 @login_required
 def buzz():
-    # TODO: replace with more permanent IP
-    # TODO: make that IP secret
-    requests.get(url="http://10.2.2.104/")
+    requests.get(url=ip)
     return redirect(url_for("internal.open"))
 
 @bp.route('/revoke/<passkey_id>')
