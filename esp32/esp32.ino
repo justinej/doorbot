@@ -11,7 +11,6 @@
    https://github.com/me−no−dev/arduino−esp32fs−plugin */
 #define FORMAT_SPIFFS_IF_FAILED true
 
-Servo myservo;
 String ssid = "";
 String password = "";
 
@@ -20,11 +19,9 @@ WiFiServer server(80);
 
 // Variable to store the HTTP request
 String header;
-
-int servoPin = 5;
-int ADC_Max = 4096;
-int servoOn = 1;
-int servoOff = 100;
+int digital_val = 0;
+int val;
+int relayOutputPin = 5;
 
 // Current time
 unsigned long currentTime = millis();
@@ -36,15 +33,8 @@ const long timeoutTime = 2000;
 void setup() {
   Serial.begin(115200);
   SPIFFS.begin(true);
-
-  // Set up Servo motor
-  ESP32PWM::allocateTimer(0);
-  ESP32PWM::allocateTimer(1);
-  ESP32PWM::allocateTimer(2);
-  ESP32PWM::allocateTimer(3);
-  myservo.setPeriodHertz(50);// Standard 50hz servo
-  myservo.attach(servoPin, 500, 2400);   // attaches the servo on pin 18 to the servo object
-  myservo.write(servoOff); // Start with servo Off
+  pinMode(relayOutputPin, OUTPUT);
+  digitalWrite(relayOutputPin, LOW);
 
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
@@ -73,6 +63,7 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
+  
   // Print local IP address and start web server
   Serial.println("");
   Serial.println("WiFi connected.");
@@ -83,7 +74,6 @@ void setup() {
 
 void loop(){
   WiFiClient client = server.available();   // Listen for incoming clients
-
   if (client) {                             // If a new client connects,
     currentTime = millis();
     previousTime = currentTime;
@@ -96,13 +86,18 @@ void loop(){
         Serial.write(c);                    // print it out the serial monitor
         if (c == '\n') {
           if (currentLine.length() == 0) {
+            Serial.write("Buzzing door open");
+            // Sending messages to client (web server)
             client.println("HTTP/1.1 200 OK");
             client.println("Content-type:text/html");
             client.println("Connection: close");
             client.println();
 
-            client.println("Hello");
-            client.println();
+            digitalWrite(relayOutputPin, HIGH);
+            delay(1000);
+            digitalWrite(relayOutputPin, LOW);
+            delay(1000);
+            
             break;
           } else {
             currentLine = "";

@@ -1,9 +1,12 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Current Passkeys{% endblock %}</h1>
+  <h1 class="alignleft">{% block title %}
+    Current Passkeys
+  {% endblock %} </h1>
+
   {% if g.admin%}
-    <form class="button" action="{{ url_for('auth.register') }}">
+    <form class="alignright" action="{{ url_for('auth.register') }}">
         <input type="submit" class="button" value="Register New Passkey" />
     </form>
   {% endif %}
@@ -14,7 +17,7 @@
   {% for key in keys %}
     <article class="post">
       <header>
-        <div>
+        <div class="alignleft">
           <h1><div class=
             {% if error(key) %}"invalid"{% else %}"valid"{% endif %}>
             Passkey ID {{ key['id'] }}</div></h1>
@@ -27,6 +30,13 @@
             <br> Notes: {{ key['notes'] }}
           </div>
         </div>
+        {% if not key['admin'] and not error(key) %}
+          <div class="alignright">
+            <form class="alignright" action="{{ url_for('internal.revoke', passkey_id=key['id'])}}">
+              <input type="submit" class="button" value="Revoke" />
+            </form>
+          </div>
+        {% endif %}
       </header>
     </article>
     <hr>

@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, request
 )
 from webapp.db import get_db
 from webapp.auth import admin_required, login_required
@@ -30,5 +30,14 @@ def open():
 def buzz():
     # TODO: replace with more permanent IP
     # TODO: make that IP secret
-    requests.get(url="http://10.2.2.126/")
+    requests.get(url="http://10.2.2.104/")
     return redirect(url_for("internal.open"))
+
+@bp.route('/revoke/<passkey_id>')
+@admin_required
+def revoke(passkey_id):
+    db = get_db()
+    # Sets passkey as expired
+    db.execute(f'UPDATE passkeys SET num_uses=1, used=1 WHERE id={passkey_id};')
+    db.commit()
+    return redirect(url_for("internal.admin"))
