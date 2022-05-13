@@ -1,9 +1,15 @@
 {% extends 'base.html' %}
 
+{% block header %}
+  {% if g.admin %}
+    <form class="alignright" action="{{ url_for('internal.admin') }}">
+      <input type="submit" class="button" value="Admin" />
+    </form>
+  {% endif %}
+{% endblock %}
+
 {% block content %}
-
-<form class="button" action="{{ url_for('internal.buzz') }}"> 
-    <input type="submit" class="button" value="buzz" />
-</form>
-
+  <form class="button" action="{{ url_for('internal.buzz') }}"> 
+      <input type="submit" class="button" value="buzz" />
+  </form>
 {% endblock %}

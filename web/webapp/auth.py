@@ -66,7 +66,7 @@ def passkey_gives_error(passkey_row):
     error = None
     if passkey_row['expiration'] and passkey_row['expiration'] <= datetime.datetime.now():
         error = "Passkey has expired!"
-    elif passkey_row['num_uses'] and passkey_row['num_uses'] >= passkey_row['used']:
+    elif passkey_row['num_uses'] and passkey_row['num_uses'] <= passkey_row['used']:
         error = "Passkey reached limit on times used"
     return error
 
@@ -77,7 +77,6 @@ def login():
         passkey = request.form['passkey']
         db = get_db()
         passkey_row = get_passkey(passkey)
-
         error = None
         if passkey_row is None:
             error = "Please enter a passkey!"
@@ -86,12 +85,6 @@ def login():
         if error is not None:
             flash(error)
             return redirect(url_for('auth.login'))
-
-        db.execute(
-            'UPDATE passkeys SET used = ? WHERE id = ?',
-            (passkey_row['used'] + 1, passkey_row['id'])
-        )
-        db.commit()
         session.clear()
         session['passkey'] = passkey
         return redirect(url_for('internal.open'))

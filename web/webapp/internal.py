@@ -22,7 +22,7 @@ def admin():
         'internal/admin.html',
         keys=keys,                # render all the existing passkeys
         dt=timedelta(hours=5),    # db stores some times as GMT. GMT - 5 hrs = EST
-        error=passkey_gives_error # true if passkey gives error
+        error=passkey_gives_error # green if valid, red invalid
      )
 
 @bp.route('/')
@@ -33,6 +33,18 @@ def open():
 @bp.route('/buzz')
 @login_required
 def buzz():
+    db = get_db()
+    error = passkey_gives_error(g.passkey)
+    if error is not None:
+      flash(error)
+      return redirect(url_for('auth.login'))
+
+    # Update num times used before buzzing door open
+    db.execute(
+        'UPDATE passkeys SET used = ? WHERE id = ?',
+        (g.passkey['used'] + 1, g.passkey['id'])
+    )
+    db.commit()
     requests.get(url=ip)
     return redirect(url_for("internal.open"))
 
