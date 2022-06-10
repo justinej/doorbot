@@ -94,7 +94,7 @@ void loop(){
             client.println();
 
             digitalWrite(relayOutputPin, HIGH);
-            delay(1000);
+            delay(10000);
             digitalWrite(relayOutputPin, LOW);
             delay(1000);
             

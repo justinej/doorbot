@@ -25,7 +25,7 @@ Every time you run the Flask app in a new terminal, run:
 ```
 source venv/bin/activate
 export FLASK_APP=webapp
-export FLASK_ENV=development
+export FLASK_ENV=production
 ```
 
 If you are using this venv for the first time, run:
@@ -45,7 +45,7 @@ flask add-admin $ADMIN_PW_OF_YOUR_CHOICE
 
 To restart an instance, run:
 ```
-flask run
+flask run --host=0.0.0.0
 ```
 
 You'll probably want to run all three of these lines the first time you set up or if you are starting over.
