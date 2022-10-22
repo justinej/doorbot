@@ -23,7 +23,7 @@ Go to `URL/admin.html` (if you have an admin passkey) in order to access the adm
 
 Every time you run the Flask app in a new terminal, run:
 ```
-source venv/bin/activate
+source venv/bin/activate # or . venv/bin/activate
 export FLASK_APP=webapp
 export FLASK_ENV=production
 ```
